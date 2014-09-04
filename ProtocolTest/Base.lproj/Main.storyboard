@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13E28" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="vXZ-lx-hvc">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="ufC-wZ-h7g">
+            <objects>
+                <viewController id="vXZ-lx-hvc" customClass="PZViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="jyV-Pf-zRb"/>
+                        <viewControllerLayoutGuide type="bottom" id="2fi-mo-0CV"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="line" minimumFontSize="17" clearButtonMode="unlessEditing" translatesAutoresizingMaskIntoConstraints="NO" id="yy0-CM-9cr">
+                                <rect key="frame" x="20" y="20" width="280" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="8hM-gr-WRf"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="vXZ-lx-hvc" id="DqP-In-YzB"/>
+                                </connections>
+                            </textField>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Vpi-Em-PBu">
+                                <rect key="frame" x="251" y="529" width="51" height="31"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="31" id="OlX-MR-9A9"/>
+                                    <constraint firstAttribute="width" constant="49" id="kk3-Wt-kT0"/>
+                                </constraints>
+                                <connections>
+                                    <action selector="onSwitchValueChanged:" destination="vXZ-lx-hvc" eventType="valueChanged" id="vPr-Dq-O9f"/>
+                                </connections>
+                            </switch>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uMR-fQ-19C">
+                                <rect key="frame" x="20" y="534" width="223" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="McY-v0-me8"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <webView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mjY-vg-hny">
+                                <rect key="frame" x="0.0" y="58" width="320" height="463"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <connections>
+                                    <outlet property="delegate" destination="vXZ-lx-hvc" id="WOA-6O-WAg"/>
+                                </connections>
+                            </webView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="uMR-fQ-19C" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="1yx-Fd-R02"/>
+                            <constraint firstItem="Vpi-Em-PBu" firstAttribute="top" secondItem="mjY-vg-hny" secondAttribute="bottom" constant="8" id="4Ma-oe-Ryy"/>
+                            <constraint firstAttribute="trailing" secondItem="Vpi-Em-PBu" secondAttribute="trailing" constant="20" id="4yk-7a-8TW"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="Vpi-Em-PBu" secondAttribute="bottom" constant="8" id="B4X-4T-99b"/>
+                            <constraint firstItem="yy0-CM-9cr" firstAttribute="trailing" secondItem="Vpi-Em-PBu" secondAttribute="trailing" id="FBR-GT-soo"/>
+                            <constraint firstAttribute="trailing" secondItem="mjY-vg-hny" secondAttribute="trailing" id="FEd-Ds-1sM"/>
+                            <constraint firstItem="mjY-vg-hny" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="Fzw-Ae-FyK"/>
+                            <constraint firstItem="mjY-vg-hny" firstAttribute="top" secondItem="yy0-CM-9cr" secondAttribute="bottom" constant="8" symbolic="YES" id="O24-lW-4yz"/>
+                            <constraint firstItem="yy0-CM-9cr" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" constant="20" symbolic="YES" id="OfV-9F-RHS"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="uMR-fQ-19C" secondAttribute="bottom" constant="13" id="R84-H8-5vz"/>
+                            <constraint firstItem="Vpi-Em-PBu" firstAttribute="leading" secondItem="uMR-fQ-19C" secondAttribute="trailing" constant="8" id="VXc-qP-jN1"/>
+                            <constraint firstItem="yy0-CM-9cr" firstAttribute="leading" secondItem="uMR-fQ-19C" secondAttribute="leading" id="gRy-RT-gVr"/>
+                            <constraint firstItem="Vpi-Em-PBu" firstAttribute="leading" secondItem="uMR-fQ-19C" secondAttribute="trailing" constant="8" id="hcJ-bM-jBD"/>
+                        </constraints>
+                    </view>
+                    <size key="freeformSize" width="320" height="568"/>
+                    <connections>
+                        <outlet property="label" destination="uMR-fQ-19C" id="gel-ba-3hc"/>
+                        <outlet property="protocolSwitch" destination="Vpi-Em-PBu" id="iOu-D6-VCh"/>
+                        <outlet property="textField" destination="yy0-CM-9cr" id="Qbb-aE-Siz"/>
+                        <outlet property="webView" destination="mjY-vg-hny" id="kgR-1Q-dUR"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+    <simulatedMetricsContainer key="defaultSimulatedMetrics">
+        <simulatedStatusBarMetrics key="statusBar"/>
+        <simulatedOrientationMetrics key="orientation"/>
+        <simulatedScreenMetrics key="destination" type="retina4"/>
+    </simulatedMetricsContainer>
+</document>
