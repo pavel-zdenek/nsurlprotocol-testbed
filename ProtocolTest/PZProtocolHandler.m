@@ -24,7 +24,15 @@ static NSString* const PASS_FLAG = @"PassHandlerFlag";
 }
 
 +(NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request {
+  NSLog(@"CANONICAL %@", request.URL.absoluteString);
   return request;
+}
+
++(BOOL)requestIsCacheEquivalent:(NSURLRequest *)a
+                       toRequest:(NSURLRequest *)b
+{
+  NSLog(@"CACHE EQUIV %@ %@", a.URL.absoluteString, b.URL.absoluteString);
+  return NO;
 }
 
 -(instancetype)initWithRequest:(NSURLRequest *)request
@@ -39,6 +47,7 @@ static NSString* const PASS_FLAG = @"PassHandlerFlag";
 -(void)startLoading {
   NSLog(@"START %@", [[self class] stringShortRequest:self.request]);
   NSMutableURLRequest* request = [self.request mutableCopy];
+  request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
   [[self class] setProperty:@(YES) forKey:PASS_FLAG inRequest:request];
   _connection = [NSURLConnection connectionWithRequest:request delegate:self];
 }
@@ -50,8 +59,25 @@ static NSString* const PASS_FLAG = @"PassHandlerFlag";
 
 #pragma mark - NSURLConnectionDataDelegate
 
+
+- (NSCachedURLResponse *)connection:(NSURLConnection *)connection
+                  willCacheResponse:(NSCachedURLResponse *)cachedResponse {
+
+  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)[cachedResponse response];
+  // Look up the cache policy used in our request
+  if([connection currentRequest].cachePolicy == NSURLRequestUseProtocolCachePolicy) {
+    NSDictionary *headers = [httpResponse allHeaderFields];
+    if(!(headers[@"Cache-Control"] || headers[@"Expires"])) {
+      NSLog(@"CACHE DENY %@", httpResponse.URL.absoluteString);
+      return nil; // don't cache this
+    }
+  }
+  return cachedResponse;
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-  NSLog(@"RESPONSE %@", [[self class] stringShortRequest:self.request]);
+  NSHTTPURLResponse* httpRes = (NSHTTPURLResponse*)response;
+  NSLog(@"RESPONSE %d %@", httpRes.statusCode, [[self class] stringShortRequest:self.request]);
   [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
 }
 
