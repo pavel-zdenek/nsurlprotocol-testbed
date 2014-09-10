@@ -8,6 +8,8 @@
 
 #import "PZProtocolHandler.h"
 
+#undef BYPASS_DELEGATE
+
 @interface PZProtocolHandler () <NSURLConnectionDataDelegate> {
   NSURLConnection* _connection;
 }
@@ -23,16 +25,8 @@ static NSString* const PASS_FLAG = @"PassHandlerFlag";
   return can;
 }
 
-+(NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request {
-  NSLog(@"CANONICAL %@", request.URL.absoluteString);
++(NSURLRequest*)canonicalRequestForRequest:(NSURLRequest *)request {
   return request;
-}
-
-+(BOOL)requestIsCacheEquivalent:(NSURLRequest *)a
-                       toRequest:(NSURLRequest *)b
-{
-  NSLog(@"CACHE EQUIV %@ %@", a.URL.absoluteString, b.URL.absoluteString);
-  return NO;
 }
 
 -(instancetype)initWithRequest:(NSURLRequest *)request
@@ -47,38 +41,59 @@ static NSString* const PASS_FLAG = @"PassHandlerFlag";
 -(void)startLoading {
   NSLog(@"START %@", [[self class] stringShortRequest:self.request]);
   NSMutableURLRequest* request = [self.request mutableCopy];
-  request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
   [[self class] setProperty:@(YES) forKey:PASS_FLAG inRequest:request];
-  _connection = [NSURLConnection connectionWithRequest:request delegate:self];
+  // currentQueue is nil here
+  NSOperationQueue* delegateQueue = [NSOperationQueue mainQueue];
+#ifdef BYPASS_DELEGATE
+  [NSURLConnection sendAsynchronousRequest:request
+                                     queue:delegateQueue
+                         completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+    // Call the implemented delegate methods for code simplicity.
+    // But does not "use" the delegate per se.
+    if(error) {
+      [self connection:nil didFailWithError:error];
+    } else {
+      [self connection:nil didReceiveResponse:response];
+      [self connection:nil didReceiveData:data];
+      [self connectionDidFinishLoading:nil];
+    }
+  }];
+#else
+  _connection = [[NSURLConnection alloc] initWithRequest:request
+                                                delegate:self
+                                        startImmediately:NO];
+  // comment out for sure stalling
+  [_connection setDelegateQueue:delegateQueue];
+  [_connection start];
+#endif
 }
 
 -(void)stopLoading {
   NSLog(@"STOP %@", [[self class] stringShortRequest:self.request]);
   [_connection cancel];
+  _connection = nil;
 }
 
 #pragma mark - NSURLConnectionDataDelegate
 
-
-- (NSCachedURLResponse *)connection:(NSURLConnection *)connection
-                  willCacheResponse:(NSCachedURLResponse *)cachedResponse {
-
-  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)[cachedResponse response];
-  // Look up the cache policy used in our request
-  if([connection currentRequest].cachePolicy == NSURLRequestUseProtocolCachePolicy) {
-    NSDictionary *headers = [httpResponse allHeaderFields];
-    if(!(headers[@"Cache-Control"] || headers[@"Expires"])) {
-      NSLog(@"CACHE DENY %@", httpResponse.URL.absoluteString);
-      return nil; // don't cache this
-    }
+- (NSURLRequest *)connection:(NSURLConnection *)connection
+             willSendRequest:(NSURLRequest *)request
+            redirectResponse:(NSURLResponse *)response {
+  if( response == nil ) {
+    // canonical rewrite
+    return request;
   }
-  return cachedResponse;
+  [self.client URLProtocol:self
+    wasRedirectedToRequest:request
+          redirectResponse:response];
+  return request;
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
   NSHTTPURLResponse* httpRes = (NSHTTPURLResponse*)response;
-  NSLog(@"RESPONSE %d %@", httpRes.statusCode, [[self class] stringShortRequest:self.request]);
-  [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+  NSLog(@"RESPONSE %ld %@", (long)httpRes.statusCode, [[self class] stringShortRequest:self.request]);
+  [self.client URLProtocol:self didReceiveResponse:response
+        cacheStoragePolicy:NSURLCacheStorageAllowed];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
