@@ -16,8 +16,14 @@
 @end
 
 static NSString* const PASS_FLAG = @"PassHandlerFlag";
+static NSOperationQueue* _queue;
 
 @implementation PZProtocolHandler
+
++(void)initialize {
+  _queue = [NSOperationQueue new];
+  [_queue setMaxConcurrentOperationCount:20];
+}
 
 +(BOOL)canInitWithRequest:(NSURLRequest *)request {
   BOOL can = ([[self class] propertyForKey:PASS_FLAG inRequest:request] == nil);
@@ -42,11 +48,9 @@ static NSString* const PASS_FLAG = @"PassHandlerFlag";
   NSLog(@"START %@", [[self class] stringShortRequest:self.request]);
   NSMutableURLRequest* request = [self.request mutableCopy];
   [[self class] setProperty:@(YES) forKey:PASS_FLAG inRequest:request];
-  // currentQueue is nil here
-  NSOperationQueue* delegateQueue = [NSOperationQueue mainQueue];
 #ifdef BYPASS_DELEGATE
   [NSURLConnection sendAsynchronousRequest:request
-                                     queue:delegateQueue
+                                     queue:_queue
                          completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
     // Call the implemented delegate methods for code simplicity.
     // But does not "use" the delegate per se.
@@ -63,7 +67,7 @@ static NSString* const PASS_FLAG = @"PassHandlerFlag";
                                                 delegate:self
                                         startImmediately:NO];
   // comment out for sure stalling
-  [_connection setDelegateQueue:delegateQueue];
+  [_connection setDelegateQueue:_queue];
   [_connection start];
 #endif
 }
