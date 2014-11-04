@@ -21,7 +21,7 @@
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
-  [self.textField setText:@"http://www.rollingstone.com"];
+  [self.textField setText:@"http://clojure.org"];
   [self.protocolSwitch setOn:YES animated:NO];
 }
 
@@ -48,7 +48,14 @@
 
 #pragma mark - UIWebViewDelegate
 
+-(BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request
+navigationType:(UIWebViewNavigationType)navigationType {
+  NSLog(@"shouldStartLoad %@", request.URL);
+  return YES;
+}
+
 -(void)webViewDidStartLoad:(UIWebView *)webView {
+   NSLog(@"didStartLoad");
   _counter++;
   [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
   self.protocolSwitch.enabled = NO;
@@ -58,6 +65,7 @@
 }
 
 -(void)webViewDidFinishLoad:(UIWebView *)webView {
+  NSLog(@"didFinishLoad");
   _counter--;
   NSTimeInterval elapsed = [[NSDate new] timeIntervalSinceDate:_start];
   if(_counter == 0) {
@@ -71,6 +79,10 @@
     self.label.text = [NSString stringWithFormat:@"Finished %ld at %.1fs", _counter, elapsed];
   }
   NSLog(@"%@",self.label.text);
+}
+
+-(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+  NSLog(@"didFailError %d", error.code);
 }
 
 @end

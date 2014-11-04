@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E9586F321A0905B600C4E515 /* NSURLRequest+ProtocolFlag.m in Sources */ = {isa = PBXBuildFile; fileRef = E9586F311A0905B600C4E515 /* NSURLRequest+ProtocolFlag.m */; };
 		E9B64A5019B0BBA30014050E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B64A4F19B0BBA30014050E /* Foundation.framework */; };
 		E9B64A5219B0BBA30014050E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B64A5119B0BBA30014050E /* CoreGraphics.framework */; };
 		E9B64A5419B0BBA30014050E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B64A5319B0BBA30014050E /* UIKit.framework */; };
@@ -35,6 +36,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		E9586F301A0905B600C4E515 /* NSURLRequest+ProtocolFlag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURLRequest+ProtocolFlag.h"; sourceTree = "<group>"; };
+		E9586F311A0905B600C4E515 /* NSURLRequest+ProtocolFlag.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURLRequest+ProtocolFlag.m"; sourceTree = "<group>"; };
 		E9B64A4C19B0BBA30014050E /* ProtocolTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProtocolTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9B64A4F19B0BBA30014050E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E9B64A5119B0BBA30014050E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -115,6 +118,8 @@
 		E9B64A5519B0BBA30014050E /* ProtocolTest */ = {
 			isa = PBXGroup;
 			children = (
+				E9586F301A0905B600C4E515 /* NSURLRequest+ProtocolFlag.h */,
+				E9586F311A0905B600C4E515 /* NSURLRequest+ProtocolFlag.m */,
 				E9B64A5E19B0BBA30014050E /* PZAppDelegate.h */,
 				E9B64A5F19B0BBA30014050E /* PZAppDelegate.m */,
 				E9B64A6419B0BBA30014050E /* PZViewController.h */,
@@ -255,6 +260,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9586F321A0905B600C4E515 /* NSURLRequest+ProtocolFlag.m in Sources */,
 				E9B64A8619B0CD950014050E /* PZProtocolHandler.m in Sources */,
 				E9B64A6619B0BBA30014050E /* PZViewController.m in Sources */,
 				E9B64A6019B0BBA30014050E /* PZAppDelegate.m in Sources */,

@@ -7,6 +7,7 @@
 //
 
 #import "PZProtocolHandler.h"
+#import "NSURLRequest+ProtocolFlag.h"
 
 #undef BYPASS_DELEGATE
 
@@ -15,7 +16,6 @@
 }
 @end
 
-static NSString* const PASS_FLAG = @"PassHandlerFlag";
 static NSOperationQueue* _queue;
 
 @implementation PZProtocolHandler
@@ -26,9 +26,9 @@ static NSOperationQueue* _queue;
 }
 
 +(BOOL)canInitWithRequest:(NSURLRequest *)request {
-  BOOL can = ([[self class] propertyForKey:PASS_FLAG inRequest:request] == nil);
-  NSLog(@"CAN %u %@", can, [[self class] stringShortRequest:request]);
-  return can;
+  BOOL canNot = [request hasPassedProtocolHandler];
+  NSLog(@"CAN %p %u %@", request, !canNot, [[self class] stringShortRequest:request]);
+  return !canNot;
 }
 
 +(NSURLRequest*)canonicalRequestForRequest:(NSURLRequest *)request {
@@ -38,7 +38,7 @@ static NSOperationQueue* _queue;
 -(instancetype)initWithRequest:(NSURLRequest *)request
                 cachedResponse:(NSCachedURLResponse *)cachedResponse
                         client:(id<NSURLProtocolClient>)client {
-  NSLog(@"INIT %@", [[self class] stringShortRequest:request]);
+  NSLog(@"INIT %p %@", request, [[self class] stringShortRequest:request]);
   return [super initWithRequest:request
                     cachedResponse:cachedResponse
                          client:client];
@@ -46,10 +46,10 @@ static NSOperationQueue* _queue;
 
 -(void)startLoading {
   NSLog(@"START %@", [[self class] stringShortRequest:self.request]);
-  NSMutableURLRequest* request = [self.request mutableCopy];
-  [[self class] setProperty:@(YES) forKey:PASS_FLAG inRequest:request];
+  NSMutableURLRequest* requestMutable = [self.request mutableCopy];
+  [requestMutable setPassedProtocolHandler:YES];
 #ifdef BYPASS_DELEGATE
-  [NSURLConnection sendAsynchronousRequest:request
+  [NSURLConnection sendAsynchronousRequest:requestMutable
                                      queue:_queue
                          completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
     // Call the implemented delegate methods for code simplicity.
@@ -63,7 +63,7 @@ static NSOperationQueue* _queue;
     }
   }];
 #else
-  _connection = [[NSURLConnection alloc] initWithRequest:request
+  _connection = [[NSURLConnection alloc] initWithRequest:requestMutable
                                                 delegate:self
                                         startImmediately:NO];
   // comment out for sure stalling
@@ -73,7 +73,7 @@ static NSOperationQueue* _queue;
 }
 
 -(void)stopLoading {
-  NSLog(@"STOP %@", [[self class] stringShortRequest:self.request]);
+  NSLog(@"STOP %@", self.request);
   [_connection cancel];
   _connection = nil;
 }
@@ -83,14 +83,19 @@ static NSOperationQueue* _queue;
 - (NSURLRequest *)connection:(NSURLConnection *)connection
              willSendRequest:(NSURLRequest *)request
             redirectResponse:(NSURLResponse *)response {
-  if( response == nil ) {
-    // canonical rewrite
+  if(response == nil) {
+    NSLog(@"REDIRECT CANONICAL %p %@", request, [[self class] stringShortRequest:request]);
     return request;
   }
-  [self.client URLProtocol:self
-    wasRedirectedToRequest:request
-          redirectResponse:response];
-  return request;
+  NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+  NSLog(@"REDIRECT %p %u %@", request, httpResponse.statusCode, [[self class] stringShortRequest:request]);
+  [@[@"Location"] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    NSLog(@"HEADER %@ -> %@",obj, httpResponse.allHeaderFields[obj]);
+  }];
+  NSMutableURLRequest *redirectableRequest = [request mutableCopy];
+  // [redirectableRequest setPassedProtocolHandler:NO];
+  [self.client URLProtocol:self wasRedirectedToRequest:redirectableRequest redirectResponse:response];
+  return redirectableRequest;
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
