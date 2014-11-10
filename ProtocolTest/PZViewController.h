@@ -7,13 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <WebKit/WKWebView.h>
 
-@interface PZViewController : UIViewController
-<UITextFieldDelegate, UIWebViewDelegate>
+@interface PZViewController : UIViewController<UITextFieldDelegate>
 
 @property (nonatomic, weak) IBOutlet UITextField* textField;
 @property (nonatomic, weak) IBOutlet UILabel* label;
-@property (nonatomic, weak) IBOutlet UIWebView* webView;
+@property (nonatomic, weak) IBOutlet UIView* viewForWebView;
 @property (nonatomic, weak) IBOutlet UISwitch* protocolSwitch;
 
 -(IBAction)onSwitchValueChanged:(id)sender;

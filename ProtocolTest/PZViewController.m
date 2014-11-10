@@ -8,16 +8,38 @@
 
 #import "PZViewController.h"
 #import "PZProtocolHandler.h"
+#ifdef USE_WEBKIT
+#import <WebKit/WebKit.h>
+#define WEBVIEW_CLASS WKWebView
+#else
+#define WEBVIEW_CLASS UIWebView
+#endif
 
-
-@interface PZViewController () {
-  NSDate* _start;
-  long _counter;
-}
-
+@interface PZViewController () <
+#ifdef USE_WEBKIT
+WKNavigationDelegate
+#else
+UIWebViewDelegate
+#endif
+>
 @end
 
 @implementation PZViewController
+{
+  NSDate* _start;
+  long _counter;
+  WEBVIEW_CLASS *_webView;
+}
+
+-(void)viewDidLoad {
+  _webView = [[WEBVIEW_CLASS alloc] initWithFrame:self.viewForWebView.bounds];
+#ifdef USE_WEBKIT
+  _webView.navigationDelegate = self;
+#else
+  _webView.delegate = self;
+#endif
+  [self.viewForWebView addSubview:_webView];
+}
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
@@ -40,7 +62,7 @@
   _counter = 0;
   _start = [NSDate new];
   self.label.text = @"";
-  [self.webView loadRequest:
+  [_webView loadRequest:
    [NSURLRequest requestWithURL:
     [NSURL URLWithString:self.textField.text]]];
   return YES;
@@ -82,7 +104,7 @@ navigationType:(UIWebViewNavigationType)navigationType {
 }
 
 -(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-  NSLog(@"didFailError %d", error.code);
+  NSLog(@"didFailError %ld", (long)error.code);
 }
 
 @end
