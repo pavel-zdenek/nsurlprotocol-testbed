@@ -14,6 +14,7 @@
 #else
 #define WEBVIEW_CLASS UIWebView
 #endif
+#import <MobileCoreServices/MobileCoreServices.h>
 
 @interface PZViewController () <
 #ifdef USE_WEBKIT
@@ -43,7 +44,7 @@ UIWebViewDelegate
 
 -(void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
-  [self.textField setText:@"http://clojure.org"];
+  [self.textField setText:@"http://novinky.cz"];
   [self.protocolSwitch setOn:YES animated:NO];
 }
 
@@ -53,6 +54,64 @@ UIWebViewDelegate
   } else {
     [NSURLProtocol unregisterClass:[PZProtocolHandler class]];
   }
+}
+
+-(IBAction)onActivityButtonClicked:(id)sender {
+  void(^completeActivityBlock)(NSURL*, NSString*) = ^(NSURL* url, NSString* title){
+    NSMutableArray* activityAttachments = [NSMutableArray new];
+    NSMutableArray* activityItemsPlain = [NSMutableArray new];
+    if(url) {
+      [activityAttachments addObject:
+        [[NSItemProvider alloc] initWithItem:url typeIdentifier:(__bridge NSString*)kUTTypeURL]
+      ];
+      [activityItemsPlain addObject:url];
+    }
+    if([title length]) {
+      [activityAttachments addObject:
+        [[NSItemProvider alloc] initWithItem:title typeIdentifier:(__bridge NSString*)kUTTypeText]
+      ];
+      [activityItemsPlain addObject:title];
+    }
+#ifdef USE_WEBKIT
+    /*
+     Trying to squeeze the WKWebView instance through to the activity controller in hope that it
+     does its magic with Action extension JS execution. Multiple problematic points:
+     - WKWebView doesn't implement NSSecureCopying as mandated by NSItemProvider constructor signature
+     - UTIs are defined just for primitive data types, not complex objects. Guessing the most generic applicable UTI.
+     
+     [activityAttachments addObject:
+       [[NSItemProvider alloc] initWithItem:_webView typeIdentifier:(__bridge NSString*)kUTTypeContent]
+     ];
+     */
+#endif
+    // Seen on
+    // https://github.com/AgileBits/onepassword-app-extension/blob/master/OnePasswordExtension.m#L251
+    // but doesn't WFM
+    NSExtensionItem* activityItem = [[NSExtensionItem alloc] init];
+    if([activityAttachments count] > 0) {
+      activityItem.attachments = [NSArray arrayWithArray:activityAttachments]; // immutate
+      // Wunderlist still doesn't pick up
+      activityItem.attributedTitle = [[NSAttributedString alloc] initWithString:title];
+    }    
+    UIActivityViewController* ctrl = [[UIActivityViewController alloc]
+                                       initWithActivityItems:activityItemsPlain
+// not WFM initWithActivityItems:@[activityItem]
+                                      applicationActivities:nil];
+    [self presentViewController:ctrl animated:YES completion:nil];
+  };
+  
+#ifdef USE_WEBKIT
+  [_webView evaluateJavaScript:@"document.title" completionHandler:^(id retval, NSError * err) {
+    // ignoring error consciously
+    completeActivityBlock(_webView.URL, retval);
+  }];
+#else
+  completeActivityBlock(
+    _webView.request.URL,
+    [_webView stringByEvaluatingJavaScriptFromString:@"document.title"]
+  );
+#endif
+   
 }
 
 #pragma mark - UITextFieldDelegate
@@ -67,6 +126,42 @@ UIWebViewDelegate
     [NSURL URLWithString:self.textField.text]]];
   return YES;
 }
+
+#ifdef USE_WEBKIT
+
+// Just a minimal delegate set to give some visual loading feedback through the label.
+// WKNavigationDelegate declares many other useful callbacks
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
+                                                     decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+  NSLog(@"shouldStartLoad %@", navigationAction.request.URL);
+  decisionHandler(WKNavigationActionPolicyAllow);
+}
+
+- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
+  NSLog(@"didStartLoad");
+  _counter++;
+  [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+  self.protocolSwitch.enabled = NO;
+  NSTimeInterval elapsed = [[NSDate new] timeIntervalSinceDate:_start];
+  self.label.text = [NSString stringWithFormat:@"Started %ld at %.1fs", _counter, elapsed];
+  NSLog(@"%@",self.label.text);
+}
+
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+  NSLog(@"didFinishLoad");
+  _counter--;
+  NSTimeInterval elapsed = [[NSDate new] timeIntervalSinceDate:_start];
+  [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+  self.protocolSwitch.enabled = YES;
+  self.label.text = [NSString stringWithFormat:@"Loaded in %.1fs",elapsed];
+  NSLog(@"%@",self.label.text);
+}
+
+- (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {
+  NSLog(@"didFailError %ld", (long)error.code);
+}
+
+#else
 
 #pragma mark - UIWebViewDelegate
 
@@ -106,5 +201,7 @@ navigationType:(UIWebViewNavigationType)navigationType {
 -(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
   NSLog(@"didFailError %ld", (long)error.code);
 }
+
+#endif
 
 @end

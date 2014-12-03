@@ -17,5 +17,6 @@
 @property (nonatomic, weak) IBOutlet UISwitch* protocolSwitch;
 
 -(IBAction)onSwitchValueChanged:(id)sender;
+-(IBAction)onActivityButtonClicked:(id)sender;
 
 @end
